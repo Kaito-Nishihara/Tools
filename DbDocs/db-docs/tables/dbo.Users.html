@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>NK Admin DB 定義書 - dbo.Users</title>
+  <link rel="stylesheet" href="./dbdocs.css" />
+</head>
+<body>
+<div class="page">
+<h1 class="title">テーブル定義 Users</h1>
+<div class="section-title">テーブル情報</div>
+<table class="table meta">
+<tr>
+<th class="th-green">システム名</th><td>NK Admin</td>
+<th class="th-green">作成者</th><td>au248</td>
+</tr>
+<tr>
+<th class="th-green">RDBMS</th><td>SQL Server</td>
+<th class="th-green">作成日</th><td>2026/01/04</td>
+</tr>
+<tr>
+<th class="th-green">スキーマ名</th><td>dbo</td>
+<th class="th-green">テーブル名</th><td>Users</td>
+</tr>
+</table>
+<div class="section-title">備考</div>
+<div class="remarks-box">アプリケーション利用者（基本情報・認証情報・監査情報を含む）</div>
+<div class="section-title">カラム情報</div>
+<table class="table">
+<thead><tr>
+  <th class="th-green" style="width:6%;">No.</th>
+  <th class="th-green" style="width:20%;">カラム名</th>
+  <th class="th-green" style="width:18%;">データ型</th>
+  <th class="th-green" style="width:12%;">Not Null</th>
+  <th class="th-green" style="width:18%;">デフォルト</th>
+  <th class="th-green" style="width:8%;">PK</th>
+  <th class="th-green">備考</th>
+</tr></thead>
+<tbody>
+<tr>
+<td class="center">1</td>
+<td>Id</td>
+<td>int</td>
+<td class="center">NOT NULL</td>
+<td></td>
+<td class="center">○</td>
+<td>主キー（内部採番）</td>
+</tr>
+<tr>
+<td class="center">2</td>
+<td>ExternalId</td>
+<td>nvarchar(64)</td>
+<td class="center">NOT NULL</td>
+<td></td>
+<td class="center"></td>
+<td>外部システム等と連携する際の永続的ID</td>
+</tr>
+<tr>
+<td class="center">3</td>
+<td>FullName</td>
+<td>nvarchar(100)</td>
+<td class="center">NOT NULL</td>
+<td></td>
+<td class="center"></td>
+<td>利用者名（氏名）</td>
+</tr>
+<tr>
+<td class="center">4</td>
+<td>Email</td>
+<td>nvarchar(255)</td>
+<td class="center">NOT NULL</td>
+<td></td>
+<td class="center"></td>
+<td>メールアドレス（ログインIDなど）</td>
+</tr>
+<tr>
+<td class="center">5</td>
+<td>PhoneNumber</td>
+<td>nvarchar(20)</td>
+<td class="center"></td>
+<td></td>
+<td class="center"></td>
+<td>電話番号</td>
+</tr>
+<tr>
+<td class="center">6</td>
+<td>PasswordHash</td>
+<td>nvarchar(256)</td>
+<td class="center"></td>
+<td></td>
+<td class="center"></td>
+<td>パスワードハッシュ（暗号化またはハッシュ前提）</td>
+</tr>
+<tr>
+<td class="center">7</td>
+<td>BirthDate</td>
+<td>date</td>
+<td class="center"></td>
+<td></td>
+<td class="center"></td>
+<td>生年月日（Always Encrypted候補）</td>
+</tr>
+<tr>
+<td class="center">8</td>
+<td>Gender</td>
+<td>nvarchar(1)</td>
+<td class="center"></td>
+<td></td>
+<td class="center"></td>
+<td>性別コード（M/F/O）</td>
+</tr>
+<tr>
+<td class="center">9</td>
+<td>IsDeleted</td>
+<td>bit</td>
+<td class="center">NOT NULL</td>
+<td></td>
+<td class="center"></td>
+<td>論理削除フラグ</td>
+</tr>
+<tr>
+<td class="center">10</td>
+<td>CreatedAt</td>
+<td>datetime2(7)</td>
+<td class="center">NOT NULL</td>
+<td>getutcdate()</td>
+<td class="center"></td>
+<td>登録日時（UTC）</td>
+</tr>
+<tr>
+<td class="center">11</td>
+<td>UpdatedAt</td>
+<td>datetime2(7)</td>
+<td class="center">NOT NULL</td>
+<td>getutcdate()</td>
+<td class="center"></td>
+<td>更新日時（UTC）</td>
+</tr>
+<tr>
+<td class="center">12</td>
+<td>CreatedBy</td>
+<td>nvarchar(64)</td>
+<td class="center"></td>
+<td></td>
+<td class="center"></td>
+<td>作成者（監査用）</td>
+</tr>
+<tr>
+<td class="center">13</td>
+<td>UpdatedBy</td>
+<td>nvarchar(64)</td>
+<td class="center"></td>
+<td></td>
+<td class="center"></td>
+<td>更新者（監査用）</td>
+</tr>
+</tbody></table>
+<div class="section-title">インデックス</div>
+<table class="table small">
+<thead><tr>
+  <th class="th-green" style="width:30%;">名前</th>
+  <th class="th-green" style="width:18%;">種別</th>
+  <th class="th-green" style="width:10%;">Unique</th>
+  <th class="th-green" style="width:8%;">PK</th>
+  <th class="th-green">キー列</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>IX_Users_Email</td>
+<td>NONCLUSTERED</td>
+<td class="center">○</td>
+<td class="center"></td>
+<td>Email</td>
+</tr>
+<tr>
+<td>PK_Users</td>
+<td>CLUSTERED</td>
+<td class="center">○</td>
+<td class="center">○</td>
+<td>Id</td>
+</tr>
+</tbody></table>
+<div class="section-title">リレーション（FK）</div>
+<table class="table small">
+<thead><tr>
+  <th class="th-green" style="width:32%;">FK名</th>
+  <th class="th-green">From</th>
+  <th class="th-green">To</th>
+</tr></thead>
+<tbody>
+<tr><td colspan="3" class="center">(none)</td></tr>
+</tbody></table>
+  <div class="footer">
+    <div>NK Admin DB 定義書</div>
+    <div>Generated: 2026/01/04 20:21</div>
+  </div>
+</div>
+
+</body>
+</html>

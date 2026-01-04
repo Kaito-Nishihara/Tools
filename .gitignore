@@ -1,0 +1,16 @@
+@"
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS / VS Code
+.vs/
+.vscode/
+
+# Logs
+*.log
+"@ | Out-File -FilePath .gitignore -Encoding utf8 -Append

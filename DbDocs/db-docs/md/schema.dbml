@@ -1,0 +1,92 @@
+Table "dbo.__EFMigrationsHistory" {
+  MigrationId nvarchar(150) [pk, not null, increment]
+  ProductVersion nvarchar(32) [not null, increment]
+}
+
+Table "dbo.AuditLogs" {
+  Id int [pk, not null, increment]
+  ActionType nvarchar(64) [not null, increment]
+  EntityType nvarchar(64) [increment]
+  EntityId nvarchar(128) [increment]
+  PerformedByUserId int [increment]
+  PerformedBy nvarchar(64) [increment]
+  PerformedAt datetime2(7) [not null, increment]
+  DataBefore nvarchar(0) [increment]
+  DataAfter nvarchar(0) [increment]
+  ClientIp nvarchar(45) [increment]
+  Metadata nvarchar(512) [increment]
+}
+
+Table "dbo.Permissions" {
+  Id int [pk, not null, increment]
+  Code nvarchar(128) [not null, increment]
+  Name nvarchar(128) [not null, increment]
+  Description nvarchar(255) [increment]
+  CreatedAt datetime2(7) [not null, increment]
+  UpdatedAt datetime2(7) [not null, increment]
+}
+
+Table "dbo.RefreshTokens" {
+  Id int [pk, not null, increment]
+  TokenHash nvarchar(256) [not null, increment]
+  UserId int [not null, increment]
+  ExpiresAt datetime2(7) [not null, increment]
+  RevokedAt datetime2(7) [increment]
+  ReplacedByTokenId int [increment]
+  CreatedAt datetime2(7) [not null, increment]
+}
+
+Table "dbo.RolePermissions" {
+  RoleId int [not null, increment]
+  PermissionId int [not null, increment]
+  GrantedAt datetime2(7) [not null, increment]
+  GrantedBy nvarchar(64) [increment]
+
+  Indexes {
+    (RoleId, PermissionId) [pk]
+  }
+}
+
+Table "dbo.Roles" {
+  Id int [pk, not null, increment]
+  Code nvarchar(64) [not null, increment]
+  Name nvarchar(100) [not null, increment]
+  Description nvarchar(255) [increment]
+  IsDeleted bit [not null, increment]
+  CreatedAt datetime2(7) [not null, increment]
+  UpdatedAt datetime2(7) [not null, increment]
+}
+
+Table "dbo.UserRoles" {
+  UserId int [not null, increment]
+  RoleId int [not null, increment]
+  AssignedAt datetime2(7) [not null, increment]
+  AssignedBy nvarchar(64) [increment]
+
+  Indexes {
+    (UserId, RoleId) [pk]
+  }
+}
+
+Table "dbo.Users" {
+  Id int [pk, not null, increment]
+  ExternalId nvarchar(64) [not null, increment]
+  FullName nvarchar(100) [not null, increment]
+  Email nvarchar(255) [not null, increment]
+  PhoneNumber nvarchar(20) [increment]
+  PasswordHash nvarchar(256) [increment]
+  BirthDate date [increment]
+  Gender nvarchar(1) [increment]
+  IsDeleted bit [not null, increment]
+  CreatedAt datetime2(7) [not null, increment]
+  UpdatedAt datetime2(7) [not null, increment]
+  CreatedBy nvarchar(64) [increment]
+  UpdatedBy nvarchar(64) [increment]
+}
+
+Ref: "dbo.Users".Id < "dbo.AuditLogs".PerformedByUserId
+Ref: "dbo.Users".Id < "dbo.RefreshTokens".UserId
+Ref: "dbo.Permissions".Id < "dbo.RolePermissions".PermissionId
+Ref: "dbo.Roles".Id < "dbo.RolePermissions".RoleId
+Ref: "dbo.Roles".Id < "dbo.UserRoles".RoleId
+Ref: "dbo.Users".Id < "dbo.UserRoles".UserId

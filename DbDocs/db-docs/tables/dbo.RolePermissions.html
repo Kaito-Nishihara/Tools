@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>NK Admin DB 定義書 - dbo.RolePermissions</title>
+  <link rel="stylesheet" href="./dbdocs.css" />
+</head>
+<body>
+<div class="page">
+<h1 class="title">テーブル定義 RolePermissions</h1>
+<div class="section-title">テーブル情報</div>
+<table class="table meta">
+<tr>
+<th class="th-green">システム名</th><td>NK Admin</td>
+<th class="th-green">作成者</th><td>au248</td>
+</tr>
+<tr>
+<th class="th-green">RDBMS</th><td>SQL Server</td>
+<th class="th-green">作成日</th><td>2026/01/04</td>
+</tr>
+<tr>
+<th class="th-green">スキーマ名</th><td>dbo</td>
+<th class="th-green">テーブル名</th><td>RolePermissions</td>
+</tr>
+</table>
+<div class="section-title">備考</div>
+<div class="remarks-box">ロールと権限の関連（多対多）</div>
+<div class="section-title">カラム情報</div>
+<table class="table">
+<thead><tr>
+  <th class="th-green" style="width:6%;">No.</th>
+  <th class="th-green" style="width:20%;">カラム名</th>
+  <th class="th-green" style="width:18%;">データ型</th>
+  <th class="th-green" style="width:12%;">Not Null</th>
+  <th class="th-green" style="width:18%;">デフォルト</th>
+  <th class="th-green" style="width:8%;">PK</th>
+  <th class="th-green">備考</th>
+</tr></thead>
+<tbody>
+<tr>
+<td class="center">1</td>
+<td>RoleId</td>
+<td>int</td>
+<td class="center">NOT NULL</td>
+<td></td>
+<td class="center">○</td>
+<td>ロールID（Roles.Id）</td>
+</tr>
+<tr>
+<td class="center">2</td>
+<td>PermissionId</td>
+<td>int</td>
+<td class="center">NOT NULL</td>
+<td></td>
+<td class="center">○</td>
+<td>権限ID（Permissions.Id）</td>
+</tr>
+<tr>
+<td class="center">3</td>
+<td>GrantedAt</td>
+<td>datetime2(7)</td>
+<td class="center">NOT NULL</td>
+<td></td>
+<td class="center"></td>
+<td>付与日時（UTC）</td>
+</tr>
+<tr>
+<td class="center">4</td>
+<td>GrantedBy</td>
+<td>nvarchar(64)</td>
+<td class="center"></td>
+<td></td>
+<td class="center"></td>
+<td>付与者（監査用）</td>
+</tr>
+</tbody></table>
+<div class="section-title">インデックス</div>
+<table class="table small">
+<thead><tr>
+  <th class="th-green" style="width:30%;">名前</th>
+  <th class="th-green" style="width:18%;">種別</th>
+  <th class="th-green" style="width:10%;">Unique</th>
+  <th class="th-green" style="width:8%;">PK</th>
+  <th class="th-green">キー列</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>IX_RolePermissions_PermissionId</td>
+<td>NONCLUSTERED</td>
+<td class="center"></td>
+<td class="center"></td>
+<td>PermissionId</td>
+</tr>
+<tr>
+<td>IX_RolePermissions_RoleId</td>
+<td>NONCLUSTERED</td>
+<td class="center"></td>
+<td class="center"></td>
+<td>RoleId</td>
+</tr>
+<tr>
+<td>PK_RolePermissions</td>
+<td>CLUSTERED</td>
+<td class="center">○</td>
+<td class="center">○</td>
+<td>RoleId, PermissionId</td>
+</tr>
+</tbody></table>
+<div class="section-title">リレーション（FK）</div>
+<table class="table small">
+<thead><tr>
+  <th class="th-green" style="width:32%;">FK名</th>
+  <th class="th-green">From</th>
+  <th class="th-green">To</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>FK_RolePermissions_Permissions_PermissionId</td>
+<td>dbo.RolePermissions.PermissionId</td>
+<td>dbo.Permissions.Id</td>
+</tr>
+<tr>
+<td>FK_RolePermissions_Roles_RoleId</td>
+<td>dbo.RolePermissions.RoleId</td>
+<td>dbo.Roles.Id</td>
+</tr>
+</tbody></table>
+  <div class="footer">
+    <div>NK Admin DB 定義書</div>
+    <div>Generated: 2026/01/04 20:21</div>
+  </div>
+</div>
+
+</body>
+</html>

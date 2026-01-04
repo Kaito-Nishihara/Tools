@@ -1,0 +1,71 @@
+@page { size: A4; margin: 10mm 10mm 12mm; }
+* { -webkit-print-color-adjust: exact; print-color-adjust: exact; box-sizing: border-box; }
+
+body {
+  font-family: "Yu Gothic UI", "Yu Gothic", "Meiryo", "Noto Sans JP", sans-serif;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #111;
+}
+
+h1.title {
+  font-size: 22px;
+  text-align: center;
+  margin: 10mm 0 6mm;
+  letter-spacing: .5px;
+}
+
+.section-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 6mm 0 2mm;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.table th, .table td {
+  border: 1px solid #222;
+  padding: 3px 5px;
+  vertical-align: top;
+  word-break: break-word;
+}
+
+.th-green {
+  background: #2f6f3a;
+  color: #fff;
+  font-weight: 700;
+  text-align: center;
+}
+
+.meta th { width: 18%; }
+.meta td { width: 32%; }
+
+.remarks-box {
+  border: 1px solid #222;
+  min-height: 28mm;
+  padding: 4px 6px;
+}
+
+.small { font-size: 11px; }
+.center { text-align: center; }
+.right { text-align: right; }
+
+.page-break { page-break-after: always; }
+
+.footer {
+  position: fixed;
+  bottom: 6mm;
+  left: 10mm;
+  right: 10mm;
+  font-size: 10px;
+  color: #555;
+  display: flex;
+  justify-content: space-between;
+}
+
+a { color: inherit; text-decoration: none; }
+a:hover { text-decoration: underline; }
