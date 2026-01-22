@@ -1,6 +1,6 @@
 # 仕様書（機能仕様）: <機能名>
 
-- システム名：<AN1 / 保活 / 〜>
+- システム名：
 - サブシステム：<Web / Function / Batch / etc>
 - 画面/機能ID：<SCR-xxx / FNC-xxx>
 - 作成日：YYYY-MM-DD

@@ -58,8 +58,6 @@ public sealed class ProbeRunner
                 },
                 TransactionScopeAsyncFlowOption.Enabled);
 
-            await _db1.Database.OpenConnectionAsync(ct);
-            await _db2.Database.OpenConnectionAsync(ct);
 
             _db1.TxProbe.Add(new TxProbe { Marker = marker, DbName = "DB1", CreatedAtUtc = DateTime.UtcNow });
             await _db1.SaveChangesAsync(ct);
