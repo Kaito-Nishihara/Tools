@@ -10,6 +10,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Entities", "Entities\Entiti
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TxScopeProbe", "TxScopeProbe\TxScopeProbe.csproj", "{51FC8E42-99BF-53FF-12B3-3F2C5152FF94}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pipelinet_tools", "pipelinet_tools", "{C52EDD1E-290F-4E7E-8231-034C17EDBD42}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlScript.Generator", "SqlScript.Generator\SqlScript.Generator.csproj", "{2B36D194-CBAF-47AB-8D90-A1C13F8CE52D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,9 +36,16 @@ Global
 		{51FC8E42-99BF-53FF-12B3-3F2C5152FF94}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{51FC8E42-99BF-53FF-12B3-3F2C5152FF94}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{51FC8E42-99BF-53FF-12B3-3F2C5152FF94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B36D194-CBAF-47AB-8D90-A1C13F8CE52D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B36D194-CBAF-47AB-8D90-A1C13F8CE52D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B36D194-CBAF-47AB-8D90-A1C13F8CE52D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B36D194-CBAF-47AB-8D90-A1C13F8CE52D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2B36D194-CBAF-47AB-8D90-A1C13F8CE52D} = {C52EDD1E-290F-4E7E-8231-034C17EDBD42}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F191A1AB-D6F0-4283-8265-05F1EA6FD975}

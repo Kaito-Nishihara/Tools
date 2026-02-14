@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SqlScript.Generator": {
+      "commandName": "Project",
+      "commandLineArgs": "--context AppDbContext --output out\\migration.sql --connection \"Server=localhost;Database=ToolsDb;Trusted_Connection=True;TrustServerCertificate=True\"\r\n"
+    }
+  }
+}

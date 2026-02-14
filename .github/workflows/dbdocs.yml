@@ -1,0 +1,108 @@
+name: Generate DbDocs (with local SQL Server)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  dbdocs:
+    runs-on: ubuntu-latest
+
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          SA_PASSWORD: "Your_strong_password123!"
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "bash -c '(/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$SA_PASSWORD\" -Q \"SELECT 1\" -b -C) || exit 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      SA_PASSWORD: "Your_strong_password123!"
+      DB_NAME: "AppDb"
+      OUT_DIR: "docs/db-docs"
+      TITLE: "NK Admin DB 定義書"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+          dotnet-quality: "preview"
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build DbDocs -c Release --no-restore
+
+      # SQL Server が完全起動するまで待つ（healthcheckがあっても保険）
+      - name: Wait for SQL Server
+        run: |
+          for i in {1..60}; do
+            docker exec ${{ job.services.sqlserver.id }} bash -c \
+              "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '${SA_PASSWORD}' -Q 'SELECT 1' -b -C" \
+              && exit 0
+            sleep 2
+          done
+          echo "SQL Server did not become ready" && exit 1
+
+      - name: Create database
+        run: |
+          docker exec ${{ job.services.sqlserver.id }} bash -c \
+            "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '${SA_PASSWORD}' -Q \"IF DB_ID('${DB_NAME}') IS NULL CREATE DATABASE [${DB_NAME}]\" -b -C"
+
+      # ★ここでDBスキーマを作る
+      # パターンA: EF Core migrations を流す（あなたのアプリ側のプロジェクトに合わせて）
+      - name: Apply EF Core migrations
+        env:
+          ConnectionStrings__Default: "Server=localhost,1433;Database=${{ env.DB_NAME }};User Id=sa;Password=${{ env.SA_PASSWORD }};TrustServerCertificate=True;"
+        run: |
+          # 例: マイグレーションを持ってるプロジェクトを指定
+          dotnet tool restore || true
+          dotnet ef database update --project Your.Migrations.Project --startup-project Your.Startup.Project
+
+      # パターンB: SQLスクリプトで作るならこう（必要ならどっちかだけ）
+      # - name: Apply schema.sql
+      #   run: |
+      #     docker exec -i ${{ job.services.sqlserver.id }} bash -c \
+      #       "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '${SA_PASSWORD}' -d '${DB_NAME}' -b -C" < ./scripts/schema.sql
+
+      # Playwright使うなら（PDF必要な場合）
+      - name: Install Playwright browsers (chromium)
+        shell: pwsh
+        run: |
+          pwsh ./DbDocs/bin/Release/net10.0/playwright.ps1 install chromium
+
+      - name: Run DbDocs
+        shell: pwsh
+        env:
+          CS: "Server=localhost,1433;Database=${{ env.DB_NAME }};User Id=sa;Password=${{ env.SA_PASSWORD }};TrustServerCertificate=True;"
+        run: |
+          dotnet run --project DbDocs -c Release -- `
+            --connection "$env:CS" `
+            --out "${{ env.OUT_DIR }}" `
+            --title "${{ env.TITLE }}" `
+            --pdf
+
+      - name: Commit and push if changed
+        shell: bash
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No changes."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "${OUT_DIR}"
+          git commit -m "chore(dbdocs): update generated DB docs"
+          git push
