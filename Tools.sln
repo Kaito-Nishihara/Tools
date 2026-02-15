@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pipelinet_tools", "pipeline
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlScript.Generator", "SqlScript.Generator\SqlScript.Generator.csproj", "{2B36D194-CBAF-47AB-8D90-A1C13F8CE52D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlScript.Executor", "SqlScript.Executor\SqlScript.Executor.csproj", "{C0F8D818-A408-4C97-BC97-537E76EAD803}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,12 +42,17 @@ Global
 		{2B36D194-CBAF-47AB-8D90-A1C13F8CE52D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B36D194-CBAF-47AB-8D90-A1C13F8CE52D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2B36D194-CBAF-47AB-8D90-A1C13F8CE52D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0F8D818-A408-4C97-BC97-537E76EAD803}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0F8D818-A408-4C97-BC97-537E76EAD803}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0F8D818-A408-4C97-BC97-537E76EAD803}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0F8D818-A408-4C97-BC97-537E76EAD803}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{2B36D194-CBAF-47AB-8D90-A1C13F8CE52D} = {C52EDD1E-290F-4E7E-8231-034C17EDBD42}
+		{C0F8D818-A408-4C97-BC97-537E76EAD803} = {C52EDD1E-290F-4E7E-8231-034C17EDBD42}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F191A1AB-D6F0-4283-8265-05F1EA6FD975}

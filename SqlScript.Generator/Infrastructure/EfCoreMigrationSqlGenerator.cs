@@ -46,5 +46,4 @@ public sealed class EfCoreMigrationSqlGenerator : IMigrationSqlGenerator
             toMigration: command.ToMigration,
             options: optionsFlag);
     }
-
 }

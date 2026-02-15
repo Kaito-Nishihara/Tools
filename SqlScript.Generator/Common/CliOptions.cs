@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SqlScript.Generator.Common;
+﻿namespace SqlScript.Generator.Common;
 
 public sealed record CliOptions(
     string Context,

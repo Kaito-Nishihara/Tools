@@ -22,5 +22,5 @@ public sealed class AppUser
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
 
-    public ICollection<AppUserRole> UserRoles { get; set; } = new List<AppUserRole>();
+    public ICollection<AppUserRole> UserRoles { get; set; } = [];
 }

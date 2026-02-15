@@ -41,6 +41,6 @@ public static class ServiceCollectionExtensions
         var factoryType = typeof(IDbContextFactory<>).MakeGenericType(dbContextType);
         var factory = sp.GetRequiredService(factoryType);
         var create = factoryType.GetMethod("CreateDbContext")!;
-        return (DbContext)create.Invoke(factory, Array.Empty<object>())!;
+        return (DbContext)create.Invoke(factory, [])!;
     }
 }

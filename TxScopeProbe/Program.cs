@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Transactions;
-TransactionManager.ImplicitDistributedTransactions = true;
+
 await Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(cfg =>
     {

@@ -22,7 +22,7 @@ public sealed class DbContextTypeResolver : IDbContextTypeResolver
             .Where(a => !a.IsDynamic)
             .SelectMany(a =>
             {
-                try { return a.GetTypes(); } catch { return Array.Empty<Type>(); }
+                try { return a.GetTypes(); } catch { return []; }
             })
             .Where(t => typeof(DbContext).IsAssignableFrom(t) && !t.IsAbstract)
             .ToList();

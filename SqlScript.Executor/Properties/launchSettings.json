@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SqlScript.Executor": {
+      "commandName": "Project",
+      "commandLineArgs": "  --url \"https://your-function-app.azurewebsites.net/api/db/apply-migration-sql\" `\r\n  --key \"YOUR_FUNCTION_KEY\" `\r\n  --sql \".\\out\\migration.sql\" `\r\n  --context \"AppDbContext\" `\r\n  --base \"20260215_InitialUserSchema\" `\r\n  --target \"20260216_AddUsers\" `\r\n  --dryRun"
+    }
+  }
+}
