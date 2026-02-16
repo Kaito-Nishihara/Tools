@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "nk.cli": {
+      "version": "1.0.0",
+      "commands": [
+        "an1"
+      ],
+      "rollForward": false
+    }
+  }
+}

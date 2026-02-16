@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>An1.Cli</id>
+    <version>0.1.1</version>
+    <authors>AN1</authors>
+    <description>AN1 CLI tools</description>
+    <packageTypes>
+      <packageType name="DotnetTool" />
+    </packageTypes>
+    <repository type="git" commit="8b5432341dcbb0a40e7440e3dfa4f56408b2e020" />
+  </metadata>
+</package>

@@ -1,51 +1,64 @@
+using System.Net;
+using System.Text.Json;
 using FunctionApp.Application;
-using FunctionApp.Domain;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using System.Net;
 
 namespace FunctionApp.Functions;
 
-public class ApplyMigrationSqlFunction
+public sealed record ApplyMigrationSqlRequest(
+    string Context,
+    string BaseMigrationId,
+    string TargetMigrationId,
+    string Sql,
+    string Sha256,
+    bool DryRun
+);
+
+public sealed class ApplyMigrationSqlFunction
 {
     private readonly ApplyMigrationHandler _handler;
-    private readonly ILogger _logger;
+    private readonly ILogger _log;
 
-    public ApplyMigrationSqlFunction(
-        ApplyMigrationHandler handler,
-        ILoggerFactory loggerFactory)
+    public ApplyMigrationSqlFunction(ApplyMigrationHandler handler, ILoggerFactory loggerFactory)
     {
         _handler = handler;
-        _logger = loggerFactory.CreateLogger<ApplyMigrationSqlFunction>();
+        _log = loggerFactory.CreateLogger<ApplyMigrationSqlFunction>();
     }
 
     [Function("ApplyMigrationSql")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "post")]
-        HttpRequestData req)
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "db/apply-migration-sql")]
+        HttpRequestData req,
+        CancellationToken ct)
     {
         try
         {
-            var body = await new StreamReader(req.Body).ReadToEndAsync();
-            var request = System.Text.Json.JsonSerializer.Deserialize<ApplyMigrationSqlRequest>(body,
-                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            var body = await new StreamReader(req.Body).ReadToEndAsync(ct);
+
+            var request = JsonSerializer.Deserialize<ApplyMigrationSqlRequest>(
+                body,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
             if (request is null)
-                return Bad(req, "Invalid JSON");
+                return Bad(req, "Invalid JSON.");
 
-            var result = await _handler.HandleAsync(request);
+            var cmd = new ApplyMigrationCommand(
+                Context: request.Context,
+                BaseMigrationId: request.BaseMigrationId,
+                TargetMigrationId: request.TargetMigrationId,
+                Sql: request.Sql,
+                Sha256: request.Sha256,
+                DryRun: request.DryRun);
 
-            if (!result.Success)
-                return Bad(req, result.Message);
+            var (ok, message) = await _handler.HandleAsync(cmd, ct);
 
-            return Ok(req, result.Message);
+            return ok ? Ok(req, message) : Bad(req, message);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unhandled error");
+            _log.LogError(ex, "Unhandled error");
             return Bad(req, ex.Message);
         }
     }

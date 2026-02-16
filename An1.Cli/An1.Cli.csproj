@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<OutputType>Exe</OutputType>
+
+		<!-- Tool化（必須） -->
+		<PackAsTool>true</PackAsTool>
+
+		<!-- 実行コマンド名：an1 dml ... -->
+		<ToolCommandName>an1</ToolCommandName>
+
+		<!-- NuGetパッケージ情報 -->
+		<PackageId>An1.Cli</PackageId>
+		<Version>0.1.1</Version>
+		<Authors>AN1</Authors>
+		<Description>AN1 CLI tools</Description>
+	</PropertyGroup>
+	<ItemGroup>
+	  <Folder Include="Commands\Db\Dml\" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\An1.Tooling\An1.Tooling.csproj" />
+	</ItemGroup>
+</Project>
