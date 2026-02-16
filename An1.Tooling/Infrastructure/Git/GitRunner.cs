@@ -43,4 +43,14 @@ public sealed class GitRunner
             throw new InvalidOperationException($"git {arguments} failed. {errText}");
         return outText;
     }
+    public async Task TryFetchAllAsync(CancellationToken ct = default)
+    {
+        var (code, _, err) = await RunAsync("fetch --all --prune", ct);
+        if (code != 0)
+            Console.Error.WriteLine($"[警告] git fetch に失敗しました（続行）: {err}");
+    }
+    public string WorkingDir => _workingDir;
+
 }
+
+

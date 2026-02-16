@@ -10,6 +10,7 @@ public sealed class AppUserRole
 
     public Guid RoleId { get; set; }
     public AppRole Role { get; set; } = default!;
+    public bool IsActive { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }
 }

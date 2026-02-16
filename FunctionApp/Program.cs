@@ -10,6 +10,5 @@ builder.ConfigureFunctionsWebApplication();
 builder.Services
     .AddApplicationInsightsTelemetryWorkerService()
     .ConfigureFunctionsApplicationInsights();
-builder.Services.AddSingleton<IHa>
 
 builder.Build().Run();

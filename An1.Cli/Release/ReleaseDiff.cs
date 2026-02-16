@@ -43,12 +43,17 @@ public static class ReleaseDiff
 
         // from 未指定は最新 release/{env}/yyyymmdd を解決
         var resolvedFrom = from;
+
         if (string.IsNullOrWhiteSpace(resolvedFrom))
         {
-            resolvedFrom = await ReleaseBranchResolver.FindLatestReleaseBranchAsync(git, env);
-            if (resolvedFrom is null)
+            // OOP版：resolver を使う
+            var resolver = new ReleaseBranchResolver(git); // remote=origin がデフォ
+            resolvedFrom = await resolver.FindLatestAsync(env);
+
+            if (string.IsNullOrWhiteSpace(resolvedFrom))
             {
-                Console.Error.WriteLine($"No release branch found: origin/release/{env}/yyyyMMdd");
+                Console.Error.WriteLine($"エラー: リリースブランチが見つかりません。想定: origin/release/{env}/yyyymmdd");
+                Console.Error.WriteLine("ヒント: git fetch --all --prune を実行し、git branch -r で release ブランチが見えるか確認してください。");
                 return 3;
             }
         }

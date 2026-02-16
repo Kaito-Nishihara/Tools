@@ -1,4 +1,5 @@
-﻿using System;
+﻿using An1.Cli.Commands.Ddl;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -21,6 +22,8 @@ static async Task<int> MainAsync(string[] args)
     var (cmd1, rest1) = (args[0], args[1..]);
     if (rest1.Length == 0) return Help();
 
+    if (cmd1.Equals("ddl", StringComparison.OrdinalIgnoreCase))
+        return await DdlCommand.RunAsync(rest1);
     // ===== dml =====
     if (cmd1.Equals("dml", StringComparison.OrdinalIgnoreCase))
     {
@@ -217,7 +220,12 @@ static async Task<int> RunReleaseDiffOneAsync(string env, string? fromArg, strin
     }
 
     Console.WriteLine(diffOut.Length == 0 ? "差分はありません。（変更なし）" : diffOut);
-
+    var compareUrl = await TryBuildGitHubCompareUrlAsync(from, to);
+    if (!string.IsNullOrWhiteSpace(compareUrl))
+    {
+        Console.WriteLine($"GitHub差分URL: {compareUrl}");
+        Console.WriteLine();
+    }
     if (commits)
     {
         Console.WriteLine();
@@ -269,6 +277,118 @@ static async Task<string?> FindLatestReleaseBranchAsync(string env)
         .FirstOrDefault();
 
     return best?.Line;
+}
+
+static async Task<string?> TryBuildGitHubCompareUrlAsync(string fromRef, string toRef)
+{
+    // origin の URL から https://github.com/owner/repo を作る
+    var baseRepoUrl = await TryGetGitHubRepoBaseUrlAsync();
+    if (baseRepoUrl is null) return null;
+
+    // GitHub compare に載せるために ref を整形
+    var from = NormalizeRefForGitHubCompare(fromRef, preferDropOriginPrefix: true);
+    var to = await NormalizeToRefForGitHubCompareAsync(toRef);
+
+    if (string.IsNullOrWhiteSpace(from) || string.IsNullOrWhiteSpace(to))
+        return null;
+
+    // URLエンコード（/ は compare ではそのままでも動くけど安全にエンコード）
+    var fromEsc = Uri.EscapeDataString(from);
+    var toEsc = Uri.EscapeDataString(to);
+
+    return $"{baseRepoUrl}/compare/{fromEsc}...{toEsc}";
+}
+
+// toRef が HEAD の場合は「現在ブランチ名」か「コミットSHA」に解決して URL に載せる
+static async Task<string> NormalizeToRefForGitHubCompareAsync(string toRef)
+{
+    var t = (toRef ?? "").Trim();
+
+    if (string.IsNullOrWhiteSpace(t) || t.Equals("HEAD", StringComparison.OrdinalIgnoreCase))
+    {
+        // まず現在ブランチ名
+        var (code1, branch, _) = await RunGitAsync("rev-parse --abbrev-ref HEAD");
+        branch = branch.Trim();
+
+        // detached のときは SHA を使う
+        if (code1 == 0 && !string.IsNullOrWhiteSpace(branch) && branch != "HEAD")
+            return branch;
+
+        var (code2, sha, _) = await RunGitAsync("rev-parse HEAD");
+        if (code2 == 0 && !string.IsNullOrWhiteSpace(sha))
+            return sha.Trim();
+
+        return "HEAD";
+    }
+
+    // origin/xxx を渡された場合は origin/ を落として表示
+    return NormalizeRefForGitHubCompare(t, preferDropOriginPrefix: true);
+}
+
+// origin/ を落とすなど、compare URL 向けに正規化
+static string NormalizeRefForGitHubCompare(string input, bool preferDropOriginPrefix)
+{
+    var s = (input ?? "").Trim();
+
+    // origin/release/dev/20260216 -> release/dev/20260216
+    if (preferDropOriginPrefix && s.StartsWith("origin/", StringComparison.OrdinalIgnoreCase))
+        s = s.Substring("origin/".Length);
+
+    // refs/remotes/origin/release/... みたいなのはここでは来ない想定だが、来てもそれっぽく処理
+    s = s.Replace("refs/remotes/origin/", "", StringComparison.OrdinalIgnoreCase);
+    s = s.Replace("refs/heads/", "", StringComparison.OrdinalIgnoreCase);
+
+    return s;
+}
+
+static async Task<string?> TryGetGitHubRepoBaseUrlAsync()
+{
+    // origin が前提。違う remote を使いたいなら --remote を足すのが次の拡張
+    var (code, url, _) = await RunGitAsync("config --get remote.origin.url");
+    if (code != 0) return null;
+
+    url = url.Trim();
+    if (string.IsNullOrWhiteSpace(url)) return null;
+
+    // 例:
+    //  - https://github.com/owner/repo.git
+    //  - git@github.com:owner/repo.git
+    //  - ssh://git@github.com/owner/repo.git
+    // を https://github.com/owner/repo に正規化
+
+    if (url.StartsWith("git@github.com:", StringComparison.OrdinalIgnoreCase))
+    {
+        // git@github.com:owner/repo.git
+        var path = url.Substring("git@github.com:".Length);
+        path = path.EndsWith(".git", StringComparison.OrdinalIgnoreCase) ? path[..^4] : path;
+        return $"https://github.com/{path}";
+    }
+
+    if (url.StartsWith("ssh://", StringComparison.OrdinalIgnoreCase))
+    {
+        // ssh://git@github.com/owner/repo.git
+        // Uri で解析
+        if (Uri.TryCreate(url, UriKind.Absolute, out var u) && u.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase))
+        {
+            var path = u.AbsolutePath.Trim('/');
+            path = path.EndsWith(".git", StringComparison.OrdinalIgnoreCase) ? path[..^4] : path;
+            return $"https://github.com/{path}";
+        }
+    }
+
+    if (url.StartsWith("https://github.com/", StringComparison.OrdinalIgnoreCase) ||
+        url.StartsWith("http://github.com/", StringComparison.OrdinalIgnoreCase))
+    {
+        // https://github.com/owner/repo.git
+        var u = url;
+        u = u.EndsWith(".git", StringComparison.OrdinalIgnoreCase) ? u[..^4] : u;
+        // http は https に寄せる
+        u = u.Replace("http://github.com/", "https://github.com/", StringComparison.OrdinalIgnoreCase);
+        return u.TrimEnd('/');
+    }
+
+    // GitHub以外（Azure Repos 等）の場合は null
+    return null;
 }
 
 static async Task<(int ExitCode, string StdOut, string StdErr)> RunGitAsync(string arguments, CancellationToken ct = default)

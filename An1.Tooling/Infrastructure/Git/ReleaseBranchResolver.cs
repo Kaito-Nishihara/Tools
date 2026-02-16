@@ -2,40 +2,57 @@
 
 namespace An1.Tooling.Infrastructure.Git;
 
-public static class ReleaseBranchResolver
+public sealed class ReleaseBranchResolver
 {
-    // release/{env}/{yyyymmdd} の最新を返す
-    public static async Task<string?> FindLatestReleaseBranchAsync(GitRunner git, string env, CancellationToken ct = default)
-    {
-        // refs/remotes/origin/release/dev/20260216 のように取れる
-        // ローカルに無い場合に備えて origin も見る
-        // まず fetch しておくのが確実（必要なら呼び出し側で）
-        var pattern = $"release/{env}/";
-        var output = await git.MustAsync($"for-each-ref --format=\"%(refname:short)\" refs/remotes/origin/{pattern}", ct);
+    private readonly GitRunner _git;
+    private readonly string _remote;
 
-        // 例: origin/release/dev/20260216
+    /// <param name="remote">通常は "origin"</param>
+    public ReleaseBranchResolver(GitRunner git, string remote = "origin")
+    {
+        _git = git ?? throw new ArgumentNullException(nameof(git));
+        _remote = string.IsNullOrWhiteSpace(remote) ? "origin" : remote.Trim();
+    }
+
+    /// <summary>
+    /// origin/release/{env}/yyyymmdd のうち、最新(yyyymmdd最大)を返す。見つからなければ null。
+    /// 戻り値は "origin/release/dev/20260216" のような ref。
+    /// </summary>
+    public async Task<string?> FindLatestAsync(string env, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(env))
+            throw new ArgumentException("env is required.", nameof(env));
+
+        env = env.Trim().ToLowerInvariant();
+
+        // refs/remotes/origin/release/dev/xxxxxxxx を列挙（* が重要）
+        var prefix = $"{_remote}/release/{env}/";
+        var refsRoot = $"refs/remotes/{prefix}";
+
+        // 例: refs/remotes/origin/release/dev/20260216 を拾いたいので末尾に * を付ける
+        var output = await _git.MustAsync(
+            $"for-each-ref --format=\"%(refname:short)\" \"{refsRoot}*\"",
+            ct);
+
         var lines = output
             .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
             .Select(x => x.Trim())
             .ToArray();
 
-        if (lines.Length == 0)
-            return null;
+        if (lines.Length == 0) return null;
 
-        // yyyymmdd を抽出して最大を取る
-        var re = new Regex($@"^origin/{Regex.Escape(pattern)}(?<date>\d{{8}})$", RegexOptions.Compiled);
+        // 例: origin/release/dev/20260216
+        var re = new Regex(
+            $@"^{Regex.Escape(prefix)}(?<date>\d{{8}})$",
+            RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
-        var candidates = lines
-            .Select(l => (Line: l, M: re.Match(l)))
+        var best = lines
+            .Select(l => new { Line = l, M = re.Match(l) })
             .Where(x => x.M.Success)
             .Select(x => new { x.Line, Date = x.M.Groups["date"].Value })
-            .OrderByDescending(x => x.Date) // 文字列でもyyyymmddならソートOK
-            .ToList();
+            .OrderByDescending(x => x.Date) // yyyymmdd なので文字列ソートでOK
+            .FirstOrDefault();
 
-        if (candidates.Count == 0)
-            return null;
-
-        // diff に使う ref としては origin/... でOK
-        return candidates[0].Line;
+        return best?.Line;
     }
 }
