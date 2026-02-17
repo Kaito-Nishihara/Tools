@@ -29,7 +29,7 @@ static async Task<int> MainAsync(string[] args)
     {
         var (cmd2, rest2) = (rest1[0], rest1[1..]);
 
-        string? GetOpt(string name)
+        string GetOpt(string name)
         {
             for (int i = 0; i < rest2.Length; i++)
             {
@@ -58,27 +58,6 @@ static async Task<int> MainAsync(string[] args)
                     return 0;
                 }
 
-            case "apply":
-                {
-                    var env = GetOpt("--env");
-                    var file = GetOpt("--file");
-
-                    if (string.IsNullOrWhiteSpace(env))
-                    {
-                        Console.Error.WriteLine("エラー: --env が指定されていません。");
-                        return 2;
-                    }
-                    if (string.IsNullOrWhiteSpace(file))
-                    {
-                        Console.Error.WriteLine("エラー: --file が指定されていません。");
-                        return 2;
-                    }
-
-                    Console.WriteLine($"[DML適用] env={env}, file={file}");
-                    // TODO: ここで Function にPOSTして適用、など
-                    return 0;
-                }
-
             default:
                 return Help();
         }
@@ -89,7 +68,7 @@ static async Task<int> MainAsync(string[] args)
     {
         var (cmd2, rest2) = (rest1[0], rest1[1..]);
 
-        string? GetOpt(string name)
+        string GetOpt(string name)
         {
             for (int i = 0; i < rest2.Length; i++)
             {
@@ -154,7 +133,6 @@ AN1 CLI
 
 使い方:
   an1 dml generate --env <Dev01|Dev02|Stg|Prd> [--from <ref>] [--to <ref>]
-  an1 dml apply    --file <path> --env <...>
 
   an1 release diff --env <dev|stg|prd> [--from <ref>] [--to <ref>] [--commits]
   an1 release diff --all [--from <ref>] [--to <ref>] [--commits]
@@ -179,7 +157,7 @@ release diff のオプション:
     return 1;
 }
 
-static async Task<int> RunReleaseDiffOneAsync(string env, string? fromArg, string? toArg, bool nameStatus, bool commits)
+static async Task<int> RunReleaseDiffOneAsync(string env, string fromArg, string toArg, bool nameStatus, bool commits)
 {
     env = env.Trim().ToLowerInvariant();
     if (env is not ("dev" or "stg" or "prd"))
@@ -252,7 +230,7 @@ static async Task TryFetchAllAsync()
     }
 }
 
-static async Task<string?> FindLatestReleaseBranchAsync(string env)
+static async Task<string> FindLatestReleaseBranchAsync(string env)
 {
     // origin/release/dev/20260216 のような ref を列挙して最新日付を拾う
     var prefix = $"origin/release/{env}/";
@@ -279,7 +257,7 @@ static async Task<string?> FindLatestReleaseBranchAsync(string env)
     return best?.Line;
 }
 
-static async Task<string?> TryBuildGitHubCompareUrlAsync(string fromRef, string toRef)
+static async Task<string> TryBuildGitHubCompareUrlAsync(string fromRef, string toRef)
 {
     // origin の URL から https://github.com/owner/repo を作る
     var baseRepoUrl = await TryGetGitHubRepoBaseUrlAsync();
@@ -341,7 +319,7 @@ static string NormalizeRefForGitHubCompare(string input, bool preferDropOriginPr
     return s;
 }
 
-static async Task<string?> TryGetGitHubRepoBaseUrlAsync()
+static async Task<string> TryGetGitHubRepoBaseUrlAsync()
 {
     // origin が前提。違う remote を使いたいなら --remote を足すのが次の拡張
     var (code, url, _) = await RunGitAsync("config --get remote.origin.url");

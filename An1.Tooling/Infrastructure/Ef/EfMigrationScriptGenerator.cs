@@ -27,7 +27,6 @@ public sealed class EfMigrationScriptGenerator
         var args =
             $"ef migrations script {idem}" +
             $"\"{fromMigration}\" \"{toMigration}\" " +
-            $"--no-build " +
             $"--project \"{projectPath}\" " +
             $"--startup-project \"{startupProjectPath}\" " +
             $"--context \"{dbContextName}\" " +

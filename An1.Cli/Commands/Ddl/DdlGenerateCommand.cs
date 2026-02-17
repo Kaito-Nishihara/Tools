@@ -15,7 +15,7 @@ public static class DdlGenerateCommand
 {
     public static async Task<int> RunAsync(string[] args)
     {
-        string? GetOpt(string name)
+        string GetOpt(string name)
         {
             for (int i = 0; i < args.Length; i++)
                 if (args[i].Equals(name, StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length)

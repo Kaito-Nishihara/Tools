@@ -1,0 +1,21 @@
+{
+  "version": 3,
+  "targets": {
+    "net10.0/win-x64": {
+      "an1.cli/0.1.7": {
+        "type": "package",
+        "tools": {
+          "tools/net10.0/any/An1.Cli.deps.json": {},
+          "tools/net10.0/any/An1.Cli.dll": {},
+          "tools/net10.0/any/An1.Cli.pdb": {},
+          "tools/net10.0/any/An1.Cli.runtimeconfig.json": {},
+          "tools/net10.0/any/An1.Tooling.dll": {},
+          "tools/net10.0/any/An1.Tooling.pdb": {},
+          "tools/net10.0/any/DotnetToolSettings.xml": {}
+        }
+      }
+    }
+  },
+  "libraries": {},
+  "projectFileDependencyGroups": {}
+}

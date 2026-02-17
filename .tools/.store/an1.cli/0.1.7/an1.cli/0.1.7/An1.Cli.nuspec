@@ -2,12 +2,12 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>An1.Cli</id>
-    <version>0.1.4</version>
+    <version>0.1.7</version>
     <authors>AN1</authors>
     <description>AN1 CLI tools</description>
     <packageTypes>
       <packageType name="DotnetTool" />
     </packageTypes>
-    <repository type="git" commit="9866aaa75d419798508c9f01e90b1a5338f7927f" />
+    <repository type="git" commit="16d9feaf6ffaf1ca46d8af5e82e1eff8730891dc" />
   </metadata>
 </package>

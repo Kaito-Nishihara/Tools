@@ -7,7 +7,7 @@ namespace An1.Cli.Commands.Release;
 
 public static class ReleaseDiff
 {
-    public static async Task<int> RunAsync(string? env, bool all, string? from, string? to)
+    public static async Task<int> RunAsync(string env, bool all, string from, string to)
     {
         // repo root を固定したいならここで解決（簡易でカレント）
         var wd = Directory.GetCurrentDirectory();
@@ -36,7 +36,7 @@ public static class ReleaseDiff
         return await RunOneAsync(git, env, from, to);
     }
 
-    private static async Task<int> RunOneAsync(GitRunner git, string env, string? from, string? to)
+    private static async Task<int> RunOneAsync(GitRunner git, string env, string from, string to)
     {
         // to 未指定は HEAD（=今のチェックアウト）
         var resolvedTo = string.IsNullOrWhiteSpace(to) ? "HEAD" : to;
