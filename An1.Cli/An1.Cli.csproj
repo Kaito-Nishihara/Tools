@@ -11,7 +11,7 @@
 
 		<!-- NuGetパッケージ情報 -->
 		<PackageId>An1.Cli</PackageId>
-		<Version>0.2.1</Version>
+		<Version>0.3.0</Version>
 		<Authors>AN1</Authors>
 		<Description>AN1 CLI tools</Description>
 	</PropertyGroup>
