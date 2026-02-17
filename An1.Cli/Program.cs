@@ -25,9 +25,6 @@ static async Task<int> MainAsync(string[] args)
 
     var cmd1 = args[0];
     var rest1 = args.Length > 1 ? args[1..] : Array.Empty<string>();
-    if (cmd1.Equals("update", StringComparison.OrdinalIgnoreCase))
-        return await UpdateCommand.RunAsync(rest1);
-    // ここで rest1.Length==0 を弾かない（dml/release/ddl 自体のHelpを出したいことがある）
     if (cmd1.Equals("ddl", StringComparison.OrdinalIgnoreCase))
         return await DdlCommand.RunAsync(rest1);
 
