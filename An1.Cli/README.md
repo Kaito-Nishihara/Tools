@@ -1,15 +1,53 @@
-•â‘«Fƒ[ƒJƒ‹nupkg‚ğXV‚·‚é‚Æ‚«‚Ì—¬‚ê
+âœ… Azure Artifacts ã« NuGet ã‚’ push ã™ã‚‹æ‰‹é †ï¼ˆæ±ºå®šç‰ˆï¼‰
+â‘  Feed ã® v3 URL ã‚’ç¢ºèª
 
-V‚µ‚¢ nupkg ‚ğì‚éiƒo[ƒWƒ‡ƒ“ã‚°‚é‚Ì•K{j
-```
-dotnet pack .\An1.Cli\An1.Cli.csproj -c Release -o .\nupkg
-```
+Azure DevOps
+â†’ Artifacts
+â†’ å¯¾è±¡ Feed
+â†’ Connect to feed
+â†’ NuGet (dotnet) ã‚’é¸æŠ
+
+å‡ºã¦ãã‚‹ v3 URL ã‚’ã‚³ãƒ”ãƒ¼ã—ã¾ã™ã€‚
+
+ä¾‹ï¼š
+
+https://pkgs.dev.azure.com/<ORG>/<PROJECT>/_packaging/<FEED>/nuget/v3/index.json
 
 
-XV
-```
-dotnet tool update An1.Cli --add-source (Resolve-Path .\nupkg) --tool-path .\.tools
-```
+â€» /nuget/v2/ ã¯ä½¿ã‚ãªã„
+
+â‘¡ æ—¢å­˜ source ã‚’ç¢ºèª
+dotnet nuget list source
 
 
-d—vFVersion ‚ğã‚°‚È‚¢‚Æ update ‚µ‚Ä‚à•Ï‚í‚è‚Ü‚¹‚ñi“¯‚¶ 0.1.0 ‚Ì‚Ü‚Ü‚¾‚ÆXV‚³‚ê‚È‚¢j
+au2485731 ãŒ v2 ã‚’å‘ã„ã¦ã„ãŸã‚‰ä¿®æ­£ã€‚
+
+â‘¢ source ã‚’ v3 ã«æ›´æ–°ï¼ˆé‡è¦ï¼‰
+dotnet nuget update source "au2485731" `
+  --source "https://pkgs.dev.azure.com/ORG/PROJECT/_packaging/FEED/nuget/v3/index.json"
+
+â‘£ PAT ã‚’ä½œæˆï¼ˆã¾ã ãªã‚‰ï¼‰
+
+Azure DevOps â†’ User Settings â†’ Personal Access Token
+
+æ¨©é™ï¼š
+
+Packaging â†’ Read & Write
+
+â‘¤ PAT ã‚’ source ã«ç™»éŒ²
+dotnet nuget update source "au2485731" `
+  --username "anything" `
+  --password "<YOUR_PAT>" `
+  --store-password-in-clear-text
+
+
+â€» username ã¯ä½•ã§ã‚‚OK
+â€» PAT ãŒæœ¬ä½“
+
+â‘¥ push å®Ÿè¡Œ
+
+v3ã§ã‚‚å¿µã®ãŸã‚ --api-key ä»˜ã‘ã‚‹ã®ãŒå®‰å…¨ã§ã™
+
+dotnet nuget push .\nupkg\An1.Cli.0.2.0.nupkg `
+  --source "au2485731" `
+  --api-key "AzureDevOps"

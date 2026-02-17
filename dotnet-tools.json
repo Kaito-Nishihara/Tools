@@ -2,17 +2,10 @@
   "version": 1,
   "isRoot": true,
   "tools": {
-    "nk.cli": {
-      "version": "1.0.0",
+    "an1.cli": {
+      "version": "0.2.0",
       "commands": [
         "an1"
-      ],
-      "rollForward": false
-    },
-    "dotnet-ef": {
-      "version": "10.0.3",
-      "commands": [
-        "dotnet-ef"
       ],
       "rollForward": false
     }
