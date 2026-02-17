@@ -5,6 +5,7 @@ using An1.Tooling.Infrastructure.FileSystem;
 using An1.Tooling.Infrastructure.Git;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,36 +16,54 @@ public static class DdlGenerateCommand
 {
     public static async Task<int> RunAsync(string[] args)
     {
-        string GetOpt(string name)
+        static string GetOpt(string[] a, string name)
         {
-            for (int i = 0; i < args.Length; i++)
-                if (args[i].Equals(name, StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length)
-                    return args[i + 1];
+            for (int i = 0; i < a.Length; i++)
+            {
+                if (a[i].Equals(name, StringComparison.OrdinalIgnoreCase) && i + 1 < a.Length)
+                    return a[i + 1];
+            }
             return null;
         }
-        bool HasFlag(string name) => args.Any(x => x.Equals(name, StringComparison.OrdinalIgnoreCase));
 
-        var env = GetOpt("--env");
+        static bool HasFlag(string[] a, string name)
+            => a.Any(x => x.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+        var env = GetOpt(args, "--env");
         if (string.IsNullOrWhiteSpace(env))
         {
             Console.Error.WriteLine("エラー: --env が指定されていません（dev|stg|prd）。");
             return 2;
         }
 
+        env = env.Trim().ToLowerInvariant();
+
+        // ===== デフォルト補完 =====
+        var project = GetOpt(args, "--project") ?? "Entities/Entities.csproj";
+        var startupProject = GetOpt(args, "--startup") ?? project; // 未指定なら project と同じ
+        var context = GetOpt(args, "--context") ?? "AN1DbContext";
+        var migrationsDir = GetOpt(args, "--migrations-dir") ?? "Entities/Migrations";
+        var outPath = GetOpt(args, "--out") ?? DefaultOutPath(env);
+
+        var from = GetOpt(args, "--from");
+        var to = GetOpt(args, "--to");
+        var idempotent = HasFlag(args, "--idempotent");
+
+        // ===== opts には「補完後の値」を入れる（ここが重要） =====
         var opts = new DdlGenerateOptions
         {
-            Env = env.Trim(),
-            FromRef = GetOpt("--from"),
-            ToRef = GetOpt("--to"),
-            MigrationsDir = GetOpt("--migrations-dir") ?? "",
-            ProjectPath = GetOpt("--project") ?? "",
-            StartupProjectPath = GetOpt("--startup") ?? "",
-            DbContextName = GetOpt("--context") ?? "",
-            OutputSqlPath = GetOpt("--out") ?? "",
-            Idempotent = HasFlag("--idempotent")
+            Env = env,
+            FromRef = from,
+            ToRef = to,
+            MigrationsDir = migrationsDir,
+            ProjectPath = project,
+            StartupProjectPath = startupProject,
+            DbContextName = context,
+            OutputSqlPath = outPath,
+            Idempotent = idempotent
         };
 
-        // 必須チェック（ここは CLI 側で明確に）
+        // 必須チェック（デフォルトがあるので通常は落ちない）
         var missing = new List<string>();
         if (string.IsNullOrWhiteSpace(opts.MigrationsDir)) missing.Add("--migrations-dir");
         if (string.IsNullOrWhiteSpace(opts.ProjectPath)) missing.Add("--project");
@@ -69,6 +88,20 @@ public static class DdlGenerateCommand
 
         var service = new DdlGenerateService(git, releaseResolver, migrationResolver, ef, paths);
 
+        // 実行前ログ（デフォルトが効いたことが分かる）
+        Console.WriteLine($"""
+DDL生成を開始します
+  env        : {opts.Env}
+  from       : {(string.IsNullOrWhiteSpace(opts.FromRef) ? "(auto)" : opts.FromRef)}
+  to         : {(string.IsNullOrWhiteSpace(opts.ToRef) ? "HEAD" : opts.ToRef)}
+  project    : {opts.ProjectPath}
+  startup    : {opts.StartupProjectPath}
+  context    : {opts.DbContextName}
+  migrations : {opts.MigrationsDir}
+  out        : {opts.OutputSqlPath}
+  idempotent : {opts.Idempotent}
+""");
+
         var result = await service.GenerateAsync(opts);
         if (!result.Success)
         {
@@ -78,5 +111,12 @@ public static class DdlGenerateCommand
 
         Console.WriteLine("OK: " + result.Message);
         return 0;
+    }
+
+    private static string DefaultOutPath(string env)
+    {
+        // env: dev|stg|prd を前提
+        var date = DateTime.Now.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+        return $"Entities/DDL/{env}/{date}/DDL_{env}.sql";
     }
 }

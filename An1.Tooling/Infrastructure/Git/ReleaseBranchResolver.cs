@@ -55,4 +55,33 @@ public sealed class ReleaseBranchResolver
 
         return best?.Line;
     }
+
+    public static async Task<string?> FindLatestReleaseBranchAsync(GitRunner git, string env, CancellationToken ct = default)
+    {
+        env = env.Trim().ToLowerInvariant();
+        var prefix = $"origin/release/{env}/";
+
+        // refs/remotes/origin/release/dev/20260216 を列挙
+        var output = await git.MustAsync(
+            $"for-each-ref --format=\"%(refname:short)\" \"refs/remotes/{prefix}*\"",
+            ct);
+
+        var lines = output
+            .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(x => x.Trim())
+            .ToArray();
+
+        if (lines.Length == 0) return null;
+
+        var re = new Regex($@"^{Regex.Escape(prefix)}(?<date>\d{{8}})$", RegexOptions.Compiled);
+
+        var best = lines
+            .Select(l => new { Line = l, M = re.Match(l) })
+            .Where(x => x.M.Success)
+            .Select(x => new { x.Line, Date = x.M.Groups["date"].Value })
+            .OrderByDescending(x => x.Date) // yyyymmdd なので文字列ソートでOK
+            .FirstOrDefault();
+
+        return best?.Line;
+    }
 }
