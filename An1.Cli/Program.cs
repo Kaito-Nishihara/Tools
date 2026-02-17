@@ -8,12 +8,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-// 1ファイル完結：dml + release diff
-// - an1 dml generate/apply
-// - an1 release diff (--env dev|stg|prd) [--from] [--to] [--all] [--commits] [--names-only|--name-status]
-// - --from 未指定なら origin/release/{env}/yyyymmdd の最新を自動解決
-// - --to 未指定なら HEAD
-
 return await MainAsync(args);
 
 
@@ -46,7 +40,7 @@ static async Task<int> MainAsync(string[] args)
         var cmd2 = rest1[0];
         var rest2 = rest1.Length > 1 ? rest1[1..] : Array.Empty<string>();
 
-        string? GetOpt(string name)
+        string GetOpt(string name)
         {
             for (int i = 0; i < rest2.Length; i++)
             {
@@ -107,29 +101,82 @@ static int Help()
     Console.WriteLine("""
 AN1 CLI
 
+概要:
+  AN1 のDB更新（DDL/DML）とリリース差分確認を行うCLIです。
+
+----------------------------------------
+DML（データ更新SQLのバンドル）
+----------------------------------------
 使い方:
   an1 dml generate --env <dev|stg|prd> [--from <ref>] [--to <ref>] [--dir <name>] [--out <path>]
 
-  an1 ddl ...
-
-  an1 release diff --env <dev|stg|prd> [--from <ref>] [--to <ref>] [--commits]
-  an1 release diff --all [--from <ref>] [--to <ref>] [--commits]
-
-release diff のオプション:
-  --name-status   (既定) 変更種別 + ファイル名を表示します
-  --names-only    ファイル名のみ表示します
-  --commits       from..to のコミット一覧も表示します
-
 動作:
-  --from 未指定 -> origin/release/{env}/yyyymmdd の最新を自動検出します
-  --to 未指定   -> HEAD（現在のチェックアウト）を使用します
+  - 差分対象: Entities/DML/Update/**.sql
+  - --from 未指定 -> origin/release/{env}/yyyymmdd の最新を自動検出
+  - --to   未指定 -> HEAD（現在のブランチ）
+  - 差分に含まれる SQL を 1ファイルに結合（to 側の内容で結合）
+  - --dir 指定時:
+      Entities/DML/Update/{EnvFolder}/{dir}/**.sql を末尾に追記
+      EnvFolder: dev->Dev, stg->Stg, prd->Prd
 
 例:
+  an1 dml generate --env dev --out Artifacts/DML_dev.sql
   an1 dml generate --env dev --dir 先行 --out Artifacts/DML_dev.sql
+  an1 dml generate --env dev --from origin/release/dev/20260216 --to develop --out Artifacts/DML_dev.sql
+
+----------------------------------------
+DDL（EF Migration差分からDDL SQL生成）
+----------------------------------------
+使い方:
+  an1 ddl generate --env <dev|stg|prd>
+      --project <csproj> [--startup <csproj>]
+      --context <DbContext>
+      --migrations-dir <path>
+      --out <path>
+      [--from <ref>] [--to <ref>] [--idempotent]
+
+動作:
+  - --from 未指定 -> origin/release/{env}/yyyymmdd の最新を自動検出
+  - --to   未指定 -> HEAD（現在のブランチ）
+  - 上記from/toを元に「対象期間のMigration差分」を取り、dotnet ef migrations script でSQLを生成します
+  - --startup 省略時は --project と同じ値を使用します（Entitiesだけで完結する構成なら省略可）
+
+例:
+  an1 ddl generate --env dev --project Entities/Entities.csproj --context AN1DbContext --migrations-dir Entities/Migrations --out Artifacts/DDL_dev.sql
+  an1 ddl generate --env dev --project Entities/Entities.csproj --startup Api/Api.csproj --context AN1DbContext --migrations-dir Entities/Migrations --out Artifacts/DDL_dev.sql
+  an1 ddl generate --env stg --project Entities/Entities.csproj --context AN1DbContext --migrations-dir Entities/Migrations --from origin/release/stg/20260201 --to develop --out Artifacts/DDL_stg.sql
+
+----------------------------------------
+Release diff（リリースブランチとの差分確認）
+----------------------------------------
+使い方:
+  an1 release diff --env <dev|stg|prd> [--from <ref>] [--to <ref>] [--commits] [--names-only|--name-status]
+  an1 release diff --all              [--from <ref>] [--to <ref>] [--commits] [--names-only|--name-status]
+
+オプション:
+  --name-status   (既定) 変更種別 + ファイル名を表示します
+  --names-only          ファイル名のみ表示します
+  --commits             from..to のコミット一覧も表示します
+
+動作:
+  - --from 未指定 -> origin/release/{env}/yyyymmdd の最新を自動検出
+  - --to   未指定 -> HEAD（現在のブランチ）
+  - GitHub の compare URL も表示します（取得できた場合）
+
+例:
   an1 release diff --env dev
+  an1 release diff --env stg --from origin/release/stg/20260201 --to develop --commits
+  an1 release diff --all --commits
+
+----------------------------------------
+その他
+----------------------------------------
+  an1 --version   バージョン表示
+
 """);
     return 1;
 }
+
 
 
 static async Task<int> RunReleaseDiffOneAsync(string env, string fromArg, string toArg, bool nameStatus, bool commits)
