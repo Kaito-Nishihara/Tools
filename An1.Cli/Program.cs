@@ -1,4 +1,5 @@
 ﻿using An1.Cli.Commands.Ddl;
+using An1.Cli.Commands.Dml;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -15,60 +16,37 @@ using System.Threading.Tasks;
 
 return await MainAsync(args);
 
+
 static async Task<int> MainAsync(string[] args)
 {
     if (args.Length == 0) return Help();
 
-    var (cmd1, rest1) = (args[0], args[1..]);
-    if (rest1.Length == 0) return Help();
+    if (args.Length == 1 && (args[0].Equals("--version", StringComparison.OrdinalIgnoreCase)
+                          || args[0].Equals("-v", StringComparison.OrdinalIgnoreCase)))
+    {
+        Console.WriteLine(typeof(Program).Assembly.GetName().Version?.ToString() ?? "unknown");
+        return 0;
+    }
 
+    var cmd1 = args[0];
+    var rest1 = args.Length > 1 ? args[1..] : Array.Empty<string>();
+
+    // ここで rest1.Length==0 を弾かない（dml/release/ddl 自体のHelpを出したいことがある）
     if (cmd1.Equals("ddl", StringComparison.OrdinalIgnoreCase))
         return await DdlCommand.RunAsync(rest1);
-    // ===== dml =====
+
     if (cmd1.Equals("dml", StringComparison.OrdinalIgnoreCase))
-    {
-        var (cmd2, rest2) = (rest1[0], rest1[1..]);
-
-        string GetOpt(string name)
-        {
-            for (int i = 0; i < rest2.Length; i++)
-            {
-                if (rest2[i].Equals(name, StringComparison.OrdinalIgnoreCase) && i + 1 < rest2.Length)
-                    return rest2[i + 1];
-            }
-            return null;
-        }
-
-        switch (cmd2.ToLowerInvariant())
-        {
-            case "generate":
-                {
-                    var env = GetOpt("--env");
-                    var from = GetOpt("--from");
-                    var to = GetOpt("--to");
-
-                    if (string.IsNullOrWhiteSpace(env))
-                    {
-                        Console.Error.WriteLine("エラー: --env が指定されていません。");
-                        return 2;
-                    }
-
-                    Console.WriteLine($"[DML生成] env={env}, from={(from ?? "（未指定/自動）")}, to={(to ?? "（未指定/自動）")}");
-                    // TODO: ここで差分取得→SQL生成→ Entities/DML/Update/... に出力
-                    return 0;
-                }
-
-            default:
-                return Help();
-        }
-    }
+        return await DmlCommand.RunAsync(rest1);
 
     // ===== release =====
     if (cmd1.Equals("release", StringComparison.OrdinalIgnoreCase))
     {
-        var (cmd2, rest2) = (rest1[0], rest1[1..]);
+        if (rest1.Length == 0) return Help();
 
-        string GetOpt(string name)
+        var cmd2 = rest1[0];
+        var rest2 = rest1.Length > 1 ? rest1[1..] : Array.Empty<string>();
+
+        string? GetOpt(string name)
         {
             for (int i = 0; i < rest2.Length; i++)
             {
@@ -91,11 +69,9 @@ static async Task<int> MainAsync(string[] args)
                     var all = HasFlag("--all");
                     var commits = HasFlag("--commits");
 
-                    // 出力形式
                     var namesOnly = HasFlag("--names-only");
-                    var nameStatus = HasFlag("--name-status") || !namesOnly; // デフォは name-status
+                    var nameStatus = HasFlag("--name-status") || !namesOnly; // 既定: name-status
 
-                    // fetch（失敗しても続行）
                     await TryFetchAllAsync();
 
                     if (all)
@@ -132,7 +108,9 @@ static int Help()
 AN1 CLI
 
 使い方:
-  an1 dml generate --env <Dev01|Dev02|Stg|Prd> [--from <ref>] [--to <ref>]
+  an1 dml generate --env <dev|stg|prd> [--from <ref>] [--to <ref>] [--dir <name>] [--out <path>]
+
+  an1 ddl ...
 
   an1 release diff --env <dev|stg|prd> [--from <ref>] [--to <ref>] [--commits]
   an1 release diff --all [--from <ref>] [--to <ref>] [--commits]
@@ -147,15 +125,12 @@ release diff のオプション:
   --to 未指定   -> HEAD（現在のチェックアウト）を使用します
 
 例:
-  an1 dml generate --env Dev01 --from release/dev/20260216 --to develop
-  an1 dml apply --env Dev01 --file Entities/DML/Update/DML_Update_20260216.sql
-
+  an1 dml generate --env dev --dir 先行 --out Artifacts/DML_dev.sql
   an1 release diff --env dev
-  an1 release diff --env stg --from origin/release/stg/20260201 --to develop
-  an1 release diff --all --commits
 """);
     return 1;
 }
+
 
 static async Task<int> RunReleaseDiffOneAsync(string env, string fromArg, string toArg, bool nameStatus, bool commits)
 {
